@@ -16,6 +16,7 @@ import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
@@ -24,6 +25,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.bobby.vaudoushorter.GalleryUiState
 import com.bobby.vaudoushorter.GalleryViewModel
+import com.bobby.vaudoushorter.R
 import com.bobby.vaudoushorter.data.*
 import com.bobby.vaudoushorter.ui.theme.*
 
@@ -130,7 +132,7 @@ private fun Header(state: GalleryUiState, enabled: Boolean, menuOpen: Boolean, o
         Box(Modifier.size(32.dp).clip(RoundedCornerShape(11.dp)).background(Lavender), contentAlignment = Alignment.Center) {
             Mark(Glyph.SPARK, Ink, Modifier.size(21.dp))
         }
-        Text("Vaudou", fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = (-.7).sp,
+        Text(stringResource(R.string.app_name), fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = (-.7).sp,
             modifier = Modifier.weight(1f).padding(start = 10.dp))
         Box {
             IconButton(onClick = { onMenu(true) }, enabled = enabled,

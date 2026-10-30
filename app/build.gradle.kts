@@ -13,17 +13,18 @@ android {
         applicationId = "com.bobby.vaudoushorter"
         minSdk = 29
         targetSdk = 37
-        versionCode = 3
-        versionName = "1.2"
+        versionCode = 4
+        versionName = "1.2.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
     buildTypes {
         release {
+            // Optimize the whole app together. A partial packageScope produced
+            // inaccessible Kotlin collection subclasses during AndroidX Startup.
             optimization {
                 enable = true
-                packageScope = setOf("androidx.**", "kotlin.**", "kotlinx.**")
             }
         }
     }

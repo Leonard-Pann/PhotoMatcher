@@ -22,5 +22,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "VaudouShorter"
+rootProject.name = "PhotoMatcher"
 include(":app")
