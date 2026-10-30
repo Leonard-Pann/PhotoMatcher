@@ -1,0 +1,64 @@
+package com.bobby.vaudoushorter
+
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.runtime.*
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.test.*
+import androidx.compose.ui.test.junit4.createComposeRule
+import com.bobby.vaudoushorter.data.*
+import com.bobby.vaudoushorter.ui.GalleryLayout
+import com.bobby.vaudoushorter.ui.theme.VaudouShorterTheme
+import org.junit.Assert.*
+import org.junit.Rule
+import org.junit.Test
+
+class GalleryLayoutTest {
+    @get:Rule val compose = createComposeRule()
+    private var trashOpened = false
+
+    private fun showGallery() {
+        val photo = GalleryMedia("content://fixture/1", "Fixture.jpg", "test", "Test", "Test", false, 1, 1)
+        val state = GalleryUiState(access = GalleryAccess(true, true), loading = false,
+            review = ReviewSnapshot(current = photo, total = 20, remaining = 13, kept = 5, discarded = 2, canUndo = true))
+        compose.setContent {
+            var options by remember { mutableStateOf(false) }
+            VaudouShorterTheme {
+                GalleryLayout(state, canChoose = true, canUndo = true, optionsEnabled = true,
+                    optionsOpen = options, onOptions = { options = it }, onFolders = {},
+                    onTrash = { trashOpened = true }, onPermissions = {}, onRefresh = {},
+                    onFilter = {}, onUndo = {}, onDecision = {}) {
+                    Box(Modifier.fillMaxSize().background(Color.DarkGray))
+                }
+            }
+        }
+    }
+
+    @Test fun mediaOccupiesMostOfTheScreenAndAllThreeActionsOverlayItsBottom() {
+        showGallery()
+        val stage = compose.onNodeWithTag("media-stage").fetchSemanticsNode().boundsInRoot
+        val screen = compose.onRoot().fetchSemanticsNode().boundsInRoot
+        assertTrue("The media should occupy at least 70% of the screen", stage.height >= screen.height * .70f)
+        val delete = compose.onNodeWithContentDescription("Supprimer").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+        val undo = compose.onNodeWithContentDescription("Annuler").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+        val keep = compose.onNodeWithContentDescription("Garder").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+        assertTrue(delete.center.x < undo.center.x && undo.center.x < keep.center.x)
+        listOf(delete, undo, keep).forEach { action ->
+            assertTrue(action.top > stage.top + stage.height * .65f)
+            assertTrue(action.bottom <= stage.bottom)
+        }
+        compose.onNodeWithText("Gardés").assertIsDisplayed()
+        compose.onNodeWithText("À supprimer").assertIsDisplayed()
+        compose.onNodeWithText("Restants").assertIsDisplayed()
+    }
+
+    @Test fun folderAndTrashRemainAccessibleThroughTheThreeDotMenu() {
+        showGallery()
+        compose.onNodeWithContentDescription("Options").performClick()
+        compose.onNodeWithText("Choisir un dossier").assertIsDisplayed()
+        compose.onNodeWithText("À supprimer (0)").performClick()
+        assertTrue(trashOpened)
+    }
+}
