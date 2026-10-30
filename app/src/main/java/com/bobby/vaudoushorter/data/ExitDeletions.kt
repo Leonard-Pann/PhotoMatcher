@@ -1,5 +1,8 @@
 package com.bobby.vaudoushorter.data
 
+import com.bobby.vaudoushorter.R
+import com.bobby.vaudoushorter.i18n.*
+
 import android.app.RecoverableSecurityException
 import android.annotation.SuppressLint
 import android.content.Context
@@ -51,7 +54,7 @@ class ExitDeletions private constructor(private val context: Context) {
                 val snapshot = save ?: store.read().let { ReviewSave(it.revision, it.choices) }
                 queueOnExit(snapshot)
             } catch (cancel: CancellationException) { throw cancel }
-            catch (_: Exception) { mutableState.value = mutableState.value.copy(error = "Les choix sont conservés. La suppression sera réessayée à la prochaine sortie.") }
+            catch (_: Exception) { mutableState.value = mutableState.value.copy(error = UiStrings(context)(R.string.retry_next_exit)) }
             finally { withContext(Dispatchers.Main) { onQueued() } }
         }
     }
@@ -81,7 +84,7 @@ class ApplyDeletionsWorker(context: Context, parameters: WorkerParameters) : Cor
             return@withContext Result.success()
         }
         if (!GalleryAccess.read(applicationContext).canDelete) {
-            controller.publish(store.finish("Autorisez la suppression des médias pour appliquer vos choix à la sortie."))
+            controller.publish(store.finish(UiStrings(applicationContext)(R.string.allow_delete_exit)))
             return@withContext Result.success()
         }
         try {
@@ -119,4 +122,4 @@ internal fun deleteMedia(context: Context, uriString: String): Boolean {
 }
 
 internal fun mediaExists(context: Context, uriString: String): Boolean = context.contentResolver.query(Uri.parse(uriString),
-    arrayOf(MediaStore.MediaColumns._ID), null, null, null)?.use { it.moveToFirst() } ?: error("La galerie ne répond pas")
+    arrayOf(MediaStore.MediaColumns._ID), null, null, null)?.use { it.moveToFirst() } ?: error(UiStrings(context)(R.string.gallery_no_response))

@@ -15,7 +15,7 @@ data class GalleryMedia(
     val duration: Long = 0
 )
 
-enum class MediaFilter(val label: String) { ALL("Tout"), PHOTOS("Photos"), VIDEOS("Vidéos") }
+enum class MediaFilter { ALL, PHOTOS, VIDEOS }
 enum class Decision { KEEP, TRASH }
 data class ReviewChoice(val media: GalleryMedia, val decision: Decision)
 data class GalleryFolder(val key: String, val name: String, val path: String, val count: Int)

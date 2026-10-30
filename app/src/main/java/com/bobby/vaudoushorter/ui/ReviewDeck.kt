@@ -1,5 +1,8 @@
 package com.bobby.vaudoushorter.ui
 
+import com.bobby.vaudoushorter.R
+import com.bobby.vaudoushorter.i18n.*
+
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -66,6 +69,7 @@ private fun SwipeCard(
     playbackActive: Boolean,
     onDecisionStarted: (String, Decision) -> Unit
 ) {
+    val text = LocalText.current
     var target by remember { mutableFloatStateOf(0f) }
     var dragging by remember { mutableStateOf(false) }
     var leaving by remember { mutableStateOf(false) }
@@ -128,7 +132,7 @@ private fun SwipeCard(
             val keep = x > 0
             val color = if (keep) Mint else Coral
             Box(Modifier.fillMaxSize().background(color.copy(alpha = (abs(x) / width * .25f).coerceIn(0f, .18f))))
-            Text(if (keep) "JE GARDE" else "AU REVOIR", color = color, fontWeight = FontWeight.Black,
+            Text(if (keep) text(R.string.stamp_keep) else text(R.string.stamp_delete), color = color, fontWeight = FontWeight.Black,
                 fontSize = 28.sp, modifier = Modifier.align(if (keep) Alignment.TopStart else Alignment.TopEnd)
                     .padding(top = 78.dp, start = 24.dp, end = 24.dp).graphicsLayer { rotationZ = if (keep) -12f else 12f }
                     .border(3.dp, color, androidx.compose.foundation.shape.RoundedCornerShape(8.dp)).padding(12.dp))
@@ -138,11 +142,12 @@ private fun SwipeCard(
 
 @Composable
 fun DecisionButtons(enabled: Boolean, canUndo: Boolean, compact: Boolean, onUndo: () -> Unit, onDecision: (Decision) -> Unit) {
+    val text = LocalText.current
     Row(Modifier.fillMaxWidth().padding(horizontal = 24.dp), horizontalArrangement = Arrangement.spacedBy(28.dp, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically) {
-        DecisionButton("Supprimer", Glyph.TRASH, Coral, enabled, if (compact) 56 else 72) { onDecision(Decision.TRASH) }
-        DecisionButton("Annuler", Glyph.UNDO, Honey, canUndo, if (compact) 48 else 56, onUndo)
-        DecisionButton("Garder", Glyph.ARROW, Mint, enabled, if (compact) 56 else 72) { onDecision(Decision.KEEP) }
+        DecisionButton(text(R.string.delete), Glyph.TRASH, Coral, enabled, if (compact) 56 else 72) { onDecision(Decision.TRASH) }
+        DecisionButton(text(R.string.undo), Glyph.UNDO, Mint, canUndo, if (compact) 48 else 56, onUndo)
+        DecisionButton(text(R.string.keep), Glyph.ARROW, Mint, enabled, if (compact) 56 else 72) { onDecision(Decision.KEEP) }
     }
 }
 

@@ -1,5 +1,8 @@
 package com.bobby.vaudoushorter.ui
 
+import com.bobby.vaudoushorter.R
+import com.bobby.vaudoushorter.i18n.*
+
 import android.view.TextureView
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -30,6 +33,7 @@ import com.bobby.vaudoushorter.ui.theme.Ink
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 @Composable
 fun InlineVideo(media: GalleryMedia, active: Boolean, modifier: Modifier = Modifier) {
+    val text = LocalText.current
     val context = LocalContext.current
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     val player = remember(media.uri) { ExoPlayer.Builder(context).build() }
@@ -87,14 +91,14 @@ fun InlineVideo(media: GalleryMedia, active: Boolean, modifier: Modifier = Modif
         player.playWhenReady = active && foreground && !pausedByUser
     }
     BoxWithConstraints(modifier.background(Color.Black).semantics {
-        contentDescription = "Vidéo : ${media.name}"
+        contentDescription = text(R.string.video_description, media.name)
         stateDescription = when {
-            failed -> "Lecture indisponible"
-            playing && rendered -> "Lecture en cours"
-            rendered -> "En pause"
-            else -> "Chargement"
+            failed -> text(R.string.playback_unavailable)
+            playing && rendered -> text(R.string.playing)
+            rendered -> text(R.string.paused)
+            else -> text(R.string.loading)
         }
-    }.clickable(enabled = active && !failed, onClickLabel = if (pausedByUser) "Reprendre la vidéo" else "Mettre la vidéo en pause") {
+    }.clickable(enabled = active && !failed, onClickLabel = if (pausedByUser) text(R.string.resume_video) else text(R.string.pause_video)) {
         pausedByUser = !pausedByUser
     }) {
         // Only show the thumbnail until a real video frame has arrived.
@@ -114,7 +118,7 @@ fun InlineVideo(media: GalleryMedia, active: Boolean, modifier: Modifier = Modif
                 )
             }
         }
-        if (failed) Text("Lecture indisponible", color = Color.White,
+        if (failed) Text(text(R.string.playback_unavailable), color = Color.White,
             modifier = Modifier.align(Alignment.Center).background(Ink.copy(alpha = .85f)).padding(12.dp))
         else if (pausedByUser && active) Mark(Glyph.PLAY, Color.White,
             Modifier.align(Alignment.Center).size(40.dp))

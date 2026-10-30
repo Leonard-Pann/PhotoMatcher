@@ -15,6 +15,9 @@ import org.junit.Test
 
 /** Synthetic URIs only: these tests never delete or inspect the user's gallery. */
 class SwipeControlsTest {
+    private fun label(id: Int): String = com.bobby.vaudoushorter.i18n.UiStrings(
+        androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().targetContext)(id)
+
     @get:Rule val compose = createComposeRule()
     private val session = ReviewSession().apply {
         setMedia((1..3).map {
@@ -47,11 +50,11 @@ class SwipeControlsTest {
 
     @Test fun keepButtonConsumesOneCardAndUndoDoesNotReplayTheCommand() {
         showDeck()
-        compose.onNodeWithContentDescription("Garder").performClick()
+        compose.onNodeWithContentDescription(label(R.string.keep)).performClick()
         compose.waitUntil(5000) { session.choices().size == 1 }
         compose.waitForIdle()
         assertEquals(Decision.KEEP, session.choices().single().decision)
-        compose.onNodeWithContentDescription("Annuler").performClick()
+        compose.onNodeWithContentDescription(label(R.string.undo)).performClick()
         compose.waitForIdle()
         assertEquals(0, session.choices().size)
         compose.mainClock.advanceTimeBy(1000)

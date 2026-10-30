@@ -21,6 +21,9 @@ import org.junit.Test
 import java.io.File
 
 class InlineVideoTest {
+    private fun label(id: Int): String = com.bobby.vaudoushorter.i18n.UiStrings(
+        androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().targetContext)(id)
+
     @get:Rule val compose = createComposeRule()
     private lateinit var fixture: File
 
@@ -53,21 +56,21 @@ class InlineVideoTest {
             }
         }
         // A real decoder must be playing, without a tap on a play button.
-        awaitState("Lecture en cours")
+        awaitState(label(R.string.playing))
         compose.runOnIdle { active = false }
-        awaitState("En pause")
+        awaitState(label(R.string.paused))
         compose.runOnIdle { active = true }
-        awaitState("Lecture en cours")
+        awaitState(label(R.string.playing))
         compose.runOnIdle { owner.registry.currentState = Lifecycle.State.STARTED }
-        awaitState("En pause")
+        awaitState(label(R.string.paused))
         compose.runOnIdle { owner.registry.currentState = Lifecycle.State.CREATED }
-        awaitState("En pause")
+        awaitState(label(R.string.paused))
         compose.runOnIdle { owner.registry.currentState = Lifecycle.State.RESUMED }
-        awaitState("Lecture en cours")
+        awaitState(label(R.string.playing))
         compose.onNodeWithContentDescription("Vidéo : Autoplay.mp4").performClick()
-        awaitState("En pause")
+        awaitState(label(R.string.paused))
         compose.onNodeWithContentDescription("Vidéo : Autoplay.mp4").performClick()
-        awaitState("Lecture en cours")
+        awaitState(label(R.string.playing))
         compose.runOnIdle { visible = false }
         compose.onNodeWithContentDescription("Vidéo : Autoplay.mp4").assertDoesNotExist()
     }

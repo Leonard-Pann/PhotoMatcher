@@ -1,5 +1,8 @@
 package com.bobby.vaudoushorter
 
+import com.bobby.vaudoushorter.R
+import com.bobby.vaudoushorter.i18n.*
+
 import android.app.Activity
 import android.content.Intent
 import android.net.Uri
@@ -29,6 +32,10 @@ class MainActivity : ComponentActivity() {
     private var userLeaving = false
     private var closing = false
 
+    override fun attachBaseContext(newBase: android.content.Context) {
+        super.attachBaseContext(AppLanguage.wrap(newBase))
+    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge(statusBarStyle = SystemBarStyle.dark(android.graphics.Color.TRANSPARENT),
@@ -53,7 +60,7 @@ class MainActivity : ComponentActivity() {
                         }
                         catch (_: Exception) {
                             model.onConsentResult(false)
-                            model.notice("La confirmation Android n’a pas pu être ouverte. Réessayez.")
+                            model.notice(UiStrings(this@MainActivity)(R.string.consent_error))
                         }
                     }
                 }
@@ -65,7 +72,17 @@ class MainActivity : ComponentActivity() {
                         externalTransition = true
                         startActivity(Intent(Settings.ACTION_APPLICATION_DETAILS_SETTINGS,
                             Uri.parse("package:$packageName")))
-                    }, onExit = ::applyAndClose)
+                    }, onExit = ::applyAndClose,
+                    onLanguageChanged = { choice -> AppLanguage.select(this, choice); recreate() },
+                    onDonate = {
+                        try {
+                            externalTransition = true
+                            startActivity(Intent(Intent.ACTION_VIEW, Uri.parse("https://github.com/Leonard-Pann/PhotoMatcher")))
+                        } catch (_: android.content.ActivityNotFoundException) {
+                            externalTransition = false
+                            model.notice(UiStrings(this@MainActivity)(R.string.browser_error))
+                        }
+                    })
             }
         }
     }
@@ -94,7 +111,7 @@ class MainActivity : ComponentActivity() {
         closing = true
         lifecycleScope.launch {
             try { model.applyAndExit() }
-            catch (_: Exception) { model.notice("Les choix sont conservés pour la prochaine sortie.") }
+            catch (_: Exception) { model.notice(UiStrings(this@MainActivity)(R.string.choices_saved)) }
             finally { finish() }
         }
     }

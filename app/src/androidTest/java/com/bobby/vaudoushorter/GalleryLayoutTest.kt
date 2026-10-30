@@ -16,6 +16,9 @@ import org.junit.Rule
 import org.junit.Test
 
 class GalleryLayoutTest {
+    private fun label(id: Int): String = com.bobby.vaudoushorter.i18n.UiStrings(
+        androidx.test.platform.app.InstrumentationRegistry.getInstrumentation().targetContext)(id)
+
     @get:Rule val compose = createComposeRule()
     private var trashOpened = false
 
@@ -41,24 +44,26 @@ class GalleryLayoutTest {
         val stage = compose.onNodeWithTag("media-stage").fetchSemanticsNode().boundsInRoot
         val screen = compose.onRoot().fetchSemanticsNode().boundsInRoot
         assertTrue("The media should occupy at least 70% of the screen", stage.height >= screen.height * .70f)
-        val delete = compose.onNodeWithContentDescription("Supprimer").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
-        val undo = compose.onNodeWithContentDescription("Annuler").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
-        val keep = compose.onNodeWithContentDescription("Garder").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+        val delete = compose.onNodeWithContentDescription(label(R.string.delete)).assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+        val undo = compose.onNodeWithContentDescription(label(R.string.undo)).assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+        val keep = compose.onNodeWithContentDescription(label(R.string.keep)).assertIsDisplayed().fetchSemanticsNode().boundsInRoot
         assertTrue(delete.center.x < undo.center.x && undo.center.x < keep.center.x)
         listOf(delete, undo, keep).forEach { action ->
             assertTrue(action.top > stage.top + stage.height * .65f)
             assertTrue(action.bottom <= stage.bottom)
         }
-        compose.onNodeWithText("Gardés").assertIsDisplayed()
-        compose.onNodeWithText("À supprimer").assertIsDisplayed()
-        compose.onNodeWithText("Restants").assertIsDisplayed()
+        compose.onNodeWithText(label(R.string.kept)).assertIsDisplayed()
+        compose.onNodeWithText(label(R.string.pending)).assertIsDisplayed()
+        compose.onNodeWithText(label(R.string.remaining)).assertIsDisplayed()
     }
 
-    @Test fun folderAndTrashRemainAccessibleThroughTheThreeDotMenu() {
+    @Test fun trashIsOnTheMainScreenAndMenuContainsTheNewSettings() {
         showGallery()
-        compose.onNodeWithContentDescription("Options").performClick()
-        compose.onNodeWithText("Choisir un dossier").assertIsDisplayed()
-        compose.onNodeWithText("À supprimer (0)").performClick()
+        compose.onNodeWithText(label(R.string.trash)).performClick()
         assertTrue(trashOpened)
+        compose.onNodeWithContentDescription(label(R.string.options)).performClick()
+        compose.onNodeWithText(label(R.string.choose_folder)).assertIsDisplayed()
+        compose.onNodeWithText(label(R.string.donate)).assertIsDisplayed()
+        compose.onNodeWithText(label(R.string.refresh)).assertDoesNotExist()
     }
 }

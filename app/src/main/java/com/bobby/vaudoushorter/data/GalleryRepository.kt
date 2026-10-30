@@ -1,5 +1,8 @@
 package com.bobby.vaudoushorter.data
 
+import com.bobby.vaudoushorter.R
+import com.bobby.vaudoushorter.i18n.*
+
 import android.Manifest
 import android.content.ContentUris
 import android.content.Context
@@ -38,7 +41,7 @@ data class GalleryAccess(val photos: Boolean, val videos: Boolean, val limited: 
     }
 }
 
-class GalleryRepository(context: Context) {
+class GalleryRepository(private val context: Context) {
     private val resolver = context.contentResolver
     private val store = ReviewStore(context)
 
@@ -50,6 +53,7 @@ class GalleryRepository(context: Context) {
     }
 
     private fun query(video: Boolean): List<GalleryMedia> {
+        val text = UiStrings(context)
         val collection = if (video) MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
             else MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL)
         val columns = mutableListOf(
@@ -69,15 +73,15 @@ class GalleryRepository(context: Context) {
                     val path = cursor.getString(4).orEmpty().trimEnd('/')
                     add(GalleryMedia(
                         uri = ContentUris.withAppendedId(base, cursor.getLong(0)).toString(),
-                        name = cursor.getString(1) ?: "Sans titre",
+                        name = cursor.getString(1) ?: text(R.string.untitled),
                         folderKey = "$volume:${cursor.getString(2)}:$path",
-                        folderName = cursor.getString(3) ?: path.substringAfterLast('/').ifEmpty { "Sans dossier" },
-                        folderPath = "${if (volume == MediaStore.VOLUME_EXTERNAL_PRIMARY) "Téléphone" else "Carte SD"} · $path",
+                        folderName = cursor.getString(3) ?: path.substringAfterLast('/').ifEmpty { text(R.string.no_folder) },
+                        folderPath = "${if (volume == MediaStore.VOLUME_EXTERNAL_PRIMARY) text(R.string.phone) else text(R.string.sd_card)} · $path",
                         isVideo = video, size = cursor.getLong(5), dateAdded = cursor.getLong(6),
                         duration = if (video) cursor.getLong(8) else 0
                     ))
                 }
-            } ?: error("La galerie ne répond pas. Réessayez dans un instant.")
+            } ?: error(text(R.string.gallery_unavailable))
         }
     }
 

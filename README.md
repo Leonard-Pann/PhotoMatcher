@@ -11,12 +11,16 @@ Application Android de tri de galerie, entièrement écrite en Kotlin avec Jetpa
 - Les compteurs **Gardés / À supprimer / Restants** restent discrets en haut du média. « À supprimer » compte les médias marqués, encore présents sur le téléphone pendant le tri.
 - Les vidéos se lisent automatiquement dans l’écran de tri, en boucle jusqu’au choix. Toucher la vidéo pour la mettre en pause ou la reprendre. La lecture s’arrête en changeant de média et se met en pause en ouvrant un menu ou en passant l’application en arrière-plan.
 - Le menu **⋮ → Choisir un dossier** permet de limiter le tri à un album. Par défaut, toute la galerie est sélectionnée.
-- Ouvrir **⋮ → À supprimer** : l’onglet **À supprimer** liste les photos et vidéos marquées et permet de les restaurer ; l’onglet **Supprimés** conserve leur nom, leur type et la date de leur effacement réel.
-- Les choix sont appliqués à la sortie : bouton **Retour**, **⋮ → Appliquer et quitter**, **Accueil** ou changement d’application. Sur Android 10, la suppression est confiée à un travail persistant en arrière-plan. Les écrans de permissions, les paramètres, la rotation et le verrouillage de l’écran ne déclenchent pas une suppression.
+- Ouvrir **Corbeille**, à droite des filtres : l’onglet **À supprimer** liste les photos et vidéos marquées et permet de les restaurer ; l’onglet **Supprimés** conserve leur nom, leur type et la date de leur effacement réel.
+- Les choix sont appliqués à la sortie : bouton **Retour**, **Corbeille → Appliquer et quitter**, **Accueil** ou changement d’application. Sur Android 10, la suppression est confiée à un travail persistant en arrière-plan. Les écrans de permissions, les paramètres, la rotation et le verrouillage de l’écran ne déclenchent pas une suppression.
+
+- **⋮ → Langue** propose Français, English et Langue du système. Par défaut, le français suit un système en français ; toute autre langue utilise l’anglais. Le choix explicite est mémorisé. Les deux traductions restent disponibles hors ligne, y compris dans un Android App Bundle.
+- **⋮ → Faire un don** ouvre une fenêtre de soutien avec un cœur violet et un bouton vers [le dépôt GitHub](https://github.com/Leonard-Pann/PhotoMatcher). Ouvrir ce lien n’applique pas les suppressions en attente.
+- Le menu ⋮ conserve Choisir un dossier et Gérer l’accès aux médias, et ajoute Langue et Faire un don. Actualiser et Appliquer et quitter sont retirés du menu ; la validation reste accessible dans la corbeille.
 
 Les choix sont enregistrés localement et repris au prochain lancement. Un média déjà trié ne revient pas, même après un changement de filtre, de dossier ou un redémarrage. Seules une annulation ou une restauration explicite le réintroduisent. Un média gardé reste dans son dossier d’origine. Aucun fichier marqué n’est effacé pendant le tri. Après application des choix à la sortie, les fichiers réellement supprimés ne peuvent plus être restaurés.
 
-Les photos principales sont décodées depuis le **fichier original** avec `ImageDecoder`, à la taille utile de la zone d’affichage, sans agrandir artificiellement les petites sources. L’orientation EXIF est respectée. Les vignettes système ne servent plus qu’aux petites listes et aux aperçus vidéo ; elles ne sont pas agrandies pour afficher les photos.
+Les photos principales sont décodées depuis le **fichier original** avec `ImageDecoder`, à la taille utile de la zone d’affichage, sans agrandir artificiellement les petites sources. L’orientation EXIF est respectée. Les petites listes utilisent des aperçus de 160 × 160 au maximum, décodés depuis les originaux. Le service de miniatures système reste utilisé en secours et pour les aperçus vidéo de l’écran principal ; ses vignettes ne sont pas agrandies pour afficher les photos.
 
 ## Permissions et suppression
 
@@ -84,3 +88,13 @@ Capture réelle de l’application sur Android 10 avec un média de démonstrati
 ![Interface sur Android 10](docs/screenshots/android10.png)
 
 [Liste avant la sortie](docs/screenshots/pending-deletions.png) · [Historique après effacement](docs/screenshots/deletion-history.png)
+
+Version **1.3** : corbeille violette sur l’écran principal, menu simplifié, français/anglais avec choix persistant et fenêtre de soutien. Les textes d’accessibilité, erreurs, listes et dates sont localisés.
+
+Version **1.3.1** : correction du rebond des fenêtres Dossiers et Corbeille après un défilement rapide vers le haut. La vitesse résiduelle vers le haut est absorbée après le défilement de la liste, avant d’atteindre l’animation de la fenêtre. L’inertie des listes, l’effet de bord et le geste vers le bas pour fermer restent disponibles. Les trois listes (dossiers, à supprimer, historique) partagent cette correction dans `ui/SheetScroll.kt`.
+
+Validation 1.3.1 sur émulateur API 35 : trois tests de défilement avec 80 éléments par liste, trois balayages rapides successifs vers le haut et fermeture vers le bas. Le test de régression échoue sans le correctif (position de la fenêtre passant de 190 px à −60 px) et passe avec celui-ci. Compilation release et Android Lint réussis.
+
+Version **1.3.2** : chargement renforcé des miniatures photo/vidéo de la corbeille après changement d’onglet, réouverture ou réutilisation d’une ligne. Les petites vignettes sont décodées depuis les originaux (photos et images vidéo), à une taille maximale de 160 × 160, indépendante des mesures de la fenêtre. MediaStore reste un secours pour les formats que le décodeur direct ne prend pas en charge. Chaque chargement possède son propre signal d’annulation, annulé avec sa coroutine ; une requête abandonnée n’est pas présentée comme une erreur d’image. Le cache mémoire reste limité à 24 Mio. La lecture des photos originales de l’écran principal reste adaptée à leur zone d’affichage.
+
+Validation 1.3.2 sur émulateur API 35 : quatre tests passent avec des fichiers photo/vidéo synthétiques, réutilisation de ligne avec cache vidé, changements d’onglet répétés, réouverture et sources sans service de miniatures. Le cas sans service échoue lorsque seul `ContentResolver.loadThumbnail` est utilisé. L’intermittence exacte signalée sur le téléphone n’a pas été reproduite sur l’émulateur. Compilation release et Android Lint réussis.

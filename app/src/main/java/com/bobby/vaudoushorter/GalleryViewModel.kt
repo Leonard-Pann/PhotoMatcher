@@ -1,5 +1,8 @@
 package com.bobby.vaudoushorter
 
+import com.bobby.vaudoushorter.R
+import com.bobby.vaudoushorter.i18n.*
+
 import android.app.Application
 import android.app.RecoverableSecurityException
 import android.content.IntentSender
@@ -57,7 +60,7 @@ class GalleryViewModel(application: Application) : AndroidViewModel(application)
             try {
                 for (save in saves) {
                     try { repository.saveChoices(save) }
-                    catch (error: Exception) { notice(error.message ?: "Enregistrement impossible") }
+                    catch (error: Exception) { notice(error.message ?: UiStrings(getApplication<android.app.Application>())(R.string.save_error)) }
                 }
             } finally { saveScope.cancel() }
         }
@@ -78,8 +81,8 @@ class GalleryViewModel(application: Application) : AndroidViewModel(application)
                 }
             } catch (cancel: CancellationException) { throw cancel }
             catch (_: Exception) {
-                mutableState.update { it.copy(loading = false, error = "Impossible de relire les choix enregistrés.") }
-                if (!ready.isCompleted) ready.completeExceptionally(IllegalStateException("Session inaccessible"))
+                mutableState.update { it.copy(loading = false, error = UiStrings(getApplication<android.app.Application>())(R.string.load_choices_error)) }
+                if (!ready.isCompleted) ready.completeExceptionally(IllegalStateException(UiStrings(getApplication<android.app.Application>())(R.string.session_error)))
             }
         }
     }
@@ -140,10 +143,10 @@ class GalleryViewModel(application: Application) : AndroidViewModel(application)
                 catalogue = emptyList()
                 session.setMedia(emptyList())
                 mutableState.update { it.copy(access = GalleryAccess.read(getApplication()),
-                    error = "L’accès à la galerie a changé. Autorisez les médias puis réessayez.") }
+                    error = UiStrings(getApplication<android.app.Application>())(R.string.access_changed)) }
                 publish()
             } catch (_: Exception) {
-                mutableState.update { it.copy(error = "Impossible de charger la galerie. Vous pouvez réessayer.") }
+                mutableState.update { it.copy(error = UiStrings(getApplication<android.app.Application>())(R.string.load_gallery_error)) }
             } finally { mutableState.update { it.copy(loading = false) } }
         }
     }
@@ -173,7 +176,7 @@ class GalleryViewModel(application: Application) : AndroidViewModel(application)
                     (it.filter == MediaFilter.VIDEOS && !media.isVideo)) MediaFilter.ALL else it.filter)
         }
         changed()
-        notice("Dernier choix annulé")
+        notice(UiStrings(getApplication<android.app.Application>())(R.string.undone))
     }
 
     fun selectFolder(folder: String?) { if (!locked()) { mutableState.update { it.copy(folder = folder) }; publish() } }
@@ -228,14 +231,14 @@ class GalleryViewModel(application: Application) : AndroidViewModel(application)
                         val request = withContext(Dispatchers.IO) {
                             MediaStore.createDeleteRequest(resolver, live.map { Uri.parse(it.uri) })
                         }
-                        if (!requestConsent(request.intentSender)) { error = "Suppression refusée. Les médias restent à supprimer."; break }
+                        if (!requestConsent(request.intentSender)) { error = UiStrings(getApplication<android.app.Application>())(R.string.delete_denied_pending); break }
                         deletions.publish(withContext(Dispatchers.IO) { deletions.store.completeBatch(live) })
                     }
                 } else {
                     for (media in pending.queue) {
                         val removed = try { withContext(Dispatchers.IO) { deleteMedia(getApplication(), media.uri) } }
                         catch (recoverable: RecoverableSecurityException) {
-                            if (!requestConsent(recoverable.userAction.actionIntent.intentSender)) { error = "Suppression refusée."; break }
+                            if (!requestConsent(recoverable.userAction.actionIntent.intentSender)) { error = UiStrings(getApplication<android.app.Application>())(R.string.delete_denied); break }
                             withContext(Dispatchers.IO) { deleteMedia(getApplication(), media.uri) }
                         }
                         deletions.publish(withContext(Dispatchers.IO) {
@@ -247,7 +250,7 @@ class GalleryViewModel(application: Application) : AndroidViewModel(application)
                 cancelled = true
                 withContext(NonCancellable + Dispatchers.IO) { deletions.publish(deletions.store.requireConsent()) }
                 throw cancel
-            } catch (_: Exception) { error = "Suppression interrompue. Les médias restants sont conservés dans la liste." }
+            } catch (_: Exception) { error = UiStrings(getApplication<android.app.Application>())(R.string.delete_interrupted) }
             finally {
                 if (!cancelled) withContext(NonCancellable + Dispatchers.IO) { deletions.publish(deletions.store.finish(error)) }
             }

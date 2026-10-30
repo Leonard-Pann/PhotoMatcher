@@ -1,5 +1,8 @@
 package com.bobby.vaudoushorter.data
 
+import com.bobby.vaudoushorter.R
+import com.bobby.vaudoushorter.i18n.*
+
 import android.content.Context
 import org.json.JSONArray
 import org.json.JSONObject
@@ -20,7 +23,7 @@ data class StoredReview(
 /** One atomic preference file preserves old sessions and journals exit-time deletions.
  * Revisions prevent a delayed UI save from resurrecting a file a worker has deleted.
  */
-class ReviewStore(context: Context, preferenceName: String = "review_session") {
+class ReviewStore(private val context: Context, preferenceName: String = "review_session") {
     private val preferences = context.getSharedPreferences(preferenceName, Context.MODE_PRIVATE)
 
     fun read(): StoredReview = synchronized(lock) { readLocked() }
@@ -55,7 +58,7 @@ class ReviewStore(context: Context, preferenceName: String = "review_session") {
             choices = current.choices.filterNot { it.media.uri in removed },
             queue = current.queue.filterNot { it.uri in attempted },
             history = current.history + deleted.filterNot { it.uri in knownHistory }.map { DeletedMedia(it, System.currentTimeMillis()) },
-            error = if (failed.isNotEmpty()) "Certains médias n’ont pas pu être supprimés. Ils restent dans la liste à supprimer." else current.error
+            error = if (failed.isNotEmpty()) UiStrings(context)(R.string.partial_delete) else current.error
         ).also(::persist)
     }
 
@@ -97,7 +100,7 @@ class ReviewStore(context: Context, preferenceName: String = "review_session") {
             .putString("deletedHistory", array(value.history.map { mediaToJson(it.media).put("deletedAt", it.deletedAt) }))
             .putBoolean("deleteRunning", value.running).putBoolean("deleteConsent", value.needsConsent)
             .putInt("deleteTotal", value.total).putString("deleteError", value.error).commit()) {
-            "Les choix n’ont pas pu être enregistrés. Vérifiez l’espace disponible."
+            UiStrings(context)(R.string.save_space_error)
         }
     }
 

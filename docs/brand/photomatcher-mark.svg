@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 108 108" role="img" aria-labelledby="title desc">
+  <title id="title">PhotoMatcher</title>
+  <desc id="desc">Une photo entre une direction corail à gauche et une direction menthe à droite.</desc>
+  <path fill="#FF8C86" d="M41 34 21 54l20 20V64l10-10-10-10Z"/>
+  <path fill="#A8E7BD" d="m67 34 20 20-20 20V64L57 54l10-10Z"/>
+  <path fill="#FFF8EE" d="M38 28h32a6 6 0 0 1 6 6v40a6 6 0 0 1-6 6H38a6 6 0 0 1-6-6V34a6 6 0 0 1 6-6Z"/>
+  <path fill="#101218" d="M37 70v-6l10-13q2-2 4 1l6 8 5-5q2-2 4 1l5 7v7Z"/>
+  <circle cx="68" cy="39" r="5" fill="#101218"/>
+</svg>

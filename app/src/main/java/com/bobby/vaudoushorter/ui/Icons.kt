@@ -1,5 +1,6 @@
 package com.bobby.vaudoushorter.ui
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
@@ -9,11 +10,27 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.graphics.drawscope.withTransform
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
+import com.bobby.vaudoushorter.R
 
-enum class Glyph { SPARK, UNDO, MORE, TRASH, ARROW, FOLDER, PHOTO, PLAY, CLOSE, CHECK, REFRESH, SHIELD, CHEVRON }
+enum class Glyph { HEART, SPARK, UNDO, MORE, TRASH, ARROW, FOLDER, PHOTO, PLAY, CLOSE, CHECK, REFRESH, SHIELD, CHEVRON }
+
+/** PhotoMatcher's brand mark, shared with the Android launcher icon. */
+@Composable
+fun PhotoMatcherMark(modifier: Modifier = Modifier) {
+    Image(
+        painter = painterResource(R.drawable.logo),
+        contentDescription = null,
+        contentScale = ContentScale.Fit,
+        // Compensate for the transparent breathing room built into the source PNG.
+        modifier = modifier.size(24.dp).graphicsLayer(scaleX = 1.3f, scaleY = 1.3f)
+    )
+}
 
 @Composable
 fun Mark(glyph: Glyph, tint: Color, modifier: Modifier = Modifier) {
@@ -28,6 +45,13 @@ fun Mark(glyph: Glyph, tint: Color, modifier: Modifier = Modifier) {
                 drawPath(path, tint, style = stroke)
             }
             when (glyph) {
+                Glyph.HEART -> drawPath(Path().apply {
+                    moveTo(12f, 21f); cubicTo(9f, 18f, 2f, 13f, 2f, 8f)
+                    cubicTo(2f, 2f, 9f, 1f, 12f, 6f)
+                    cubicTo(15f, 1f, 22f, 2f, 22f, 8f)
+                    cubicTo(22f, 13f, 15f, 18f, 12f, 21f); close()
+                }, tint)
+
                 Glyph.SPARK -> drawPath(Path().apply {
                     moveTo(12f, 2f); lineTo(15f, 9f); lineTo(22f, 12f); lineTo(15f, 15f)
                     lineTo(12f, 22f); lineTo(9f, 15f); lineTo(2f, 12f); lineTo(9f, 9f); close()
