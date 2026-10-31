@@ -10,6 +10,7 @@ import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createComposeRule
 import com.bobby.vaudoushorter.data.*
 import com.bobby.vaudoushorter.ui.GalleryLayout
+import com.bobby.vaudoushorter.ui.OpenAndroidDialog
 import com.bobby.vaudoushorter.ui.theme.VaudouShorterTheme
 import org.junit.Assert.*
 import org.junit.Rule
@@ -22,19 +23,21 @@ class GalleryLayoutTest {
     @get:Rule val compose = createComposeRule()
     private var trashOpened = false
 
-    private fun showGallery() {
+    private fun showGallery(showBadge: Boolean = false) {
         val photo = GalleryMedia("content://fixture/1", "Fixture.jpg", "test", "Test", "Test", false, 1, 1)
-        val state = GalleryUiState(access = GalleryAccess(true, true), loading = false,
+        val state = GalleryUiState(access = GalleryAccess(true, true), loading = false, showOpenAndroidBadge = showBadge,
             review = ReviewSnapshot(current = photo, total = 20, remaining = 13, kept = 5, discarded = 2, canUndo = true))
         compose.setContent {
             var options by remember { mutableStateOf(false) }
+            var openAndroid by remember { mutableStateOf(false) }
             VaudouShorterTheme {
                 GalleryLayout(state, canChoose = true, canUndo = true, optionsEnabled = true,
                     optionsOpen = options, onOptions = { options = it }, onFolders = {},
                     onTrash = { trashOpened = true }, onPermissions = {}, onRefresh = {},
-                    onFilter = {}, onUndo = {}, onDecision = {}) {
+                    onFilter = {}, onUndo = {}, onDecision = {}, onOpenAndroid = { openAndroid = true }) {
                     Box(Modifier.fillMaxSize().background(Color.DarkGray))
                 }
+                if (openAndroid) OpenAndroidDialog { openAndroid = false }
             }
         }
     }
@@ -65,5 +68,24 @@ class GalleryLayoutTest {
         compose.onNodeWithText(label(R.string.choose_folder)).assertIsDisplayed()
         compose.onNodeWithText(label(R.string.donate)).assertIsDisplayed()
         compose.onNodeWithText(label(R.string.refresh)).assertDoesNotExist()
+    }
+
+    @Test fun openAndroidBadgeIsBeforeOptionsAndOpensDismissibleThanks() {
+        showGallery(showBadge = true)
+        val badge = compose.onNodeWithTag("open-android-badge").assertIsDisplayed().fetchSemanticsNode().boundsInRoot
+        val menu = compose.onNodeWithContentDescription(label(R.string.options)).fetchSemanticsNode().boundsInRoot
+        assertTrue(badge.right <= menu.left)
+        compose.onNodeWithContentDescription("Keep Android Open").performClick()
+        compose.onNodeWithText("Keep Android Open").assertIsDisplayed()
+        compose.onNodeWithText(label(R.string.keep_android_open_body)).assertExists()
+        compose.onNodeWithText(label(R.string.close)).performClick()
+        compose.onNodeWithText(label(R.string.keep_android_open_body)).assertDoesNotExist()
+        compose.onNodeWithTag("open-android-badge").assertIsDisplayed()
+    }
+
+    @Test fun googleServicesPresentLeavesBadgeOutOfHeader() {
+        showGallery(showBadge = false)
+        compose.onNodeWithTag("open-android-badge").assertDoesNotExist()
+        compose.onNodeWithContentDescription(label(R.string.options)).assertIsDisplayed()
     }
 }

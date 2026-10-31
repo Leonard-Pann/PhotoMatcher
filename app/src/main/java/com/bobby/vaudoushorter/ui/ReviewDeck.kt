@@ -146,7 +146,7 @@ fun DecisionButtons(enabled: Boolean, canUndo: Boolean, compact: Boolean, onUndo
     Row(Modifier.fillMaxWidth().padding(horizontal = 24.dp), horizontalArrangement = Arrangement.spacedBy(28.dp, Alignment.CenterHorizontally),
         verticalAlignment = Alignment.CenterVertically) {
         DecisionButton(text(R.string.delete), Glyph.TRASH, Coral, enabled, if (compact) 56 else 72) { onDecision(Decision.TRASH) }
-        DecisionButton(text(R.string.undo), Glyph.UNDO, Mint, canUndo, if (compact) 48 else 56, onUndo)
+        DecisionButton(text(R.string.undo), Glyph.UNDO, Honey, canUndo, if (compact) 48 else 56, onUndo)
         DecisionButton(text(R.string.keep), Glyph.ARROW, Mint, enabled, if (compact) 56 else 72) { onDecision(Decision.KEEP) }
     }
 }

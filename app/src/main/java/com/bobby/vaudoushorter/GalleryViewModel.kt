@@ -12,6 +12,7 @@ import android.provider.MediaStore
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import com.bobby.vaudoushorter.data.*
+import com.bobby.vaudoushorter.device.OpenAndroidBadge
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,7 +34,8 @@ data class GalleryUiState(
     val deleteProgress: Int = 0,
     val deleteTotal: Int = 0,
     val deletedHistory: List<DeletedMedia> = emptyList(),
-    val consent: DeleteConsent? = null
+    val consent: DeleteConsent? = null,
+    val showOpenAndroidBadge: Boolean = false
 )
 
 class GalleryViewModel(application: Application) : AndroidViewModel(application) {
@@ -56,6 +58,11 @@ class GalleryViewModel(application: Application) : AndroidViewModel(application)
     private val saveScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     init {
+        // A local package inspection; the gallery never waits for Google or a network request.
+        viewModelScope.launch {
+            val result = OpenAndroidBadge(application).check()
+            mutableState.update { it.copy(showOpenAndroidBadge = result.showBadge) }
+        }
         saveScope.launch {
             try {
                 for (save in saves) {

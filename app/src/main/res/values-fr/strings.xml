@@ -90,4 +90,5 @@
     <string name="video_description">Vidéo : %1$s</string>
     <string name="stamp_keep">GARDER</string>
     <string name="stamp_delete">SUPPRIMER</string>
+    <string name="keep_android_open_body">Merci de faire vivre un Android ouvert ! Si vous utilisez un Android open source ou dégooglisé, votre choix contribue à préserver la liberté d’installer vos applications et de choisir votre système.\n\nDéfendons un écosystème Android où chacun garde le contrôle de son appareil. KEEP ANDROID OPEN !\n\nCe badge repose sur des indices locaux, comme microG ou l’absence des services Google officiels. Il ne vérifie ni la certification Google ni Play Integrity.</string>
 </resources>

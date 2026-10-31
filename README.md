@@ -7,7 +7,7 @@ Application Android de tri de galerie, entièrement écrite en Kotlin avec Jetpa
 - À la première ouverture, autoriser les photos et les vidéos. Les médias disponibles sont présentés dans un ordre aléatoire, sans répétition des éléments déjà triés.
 - Glisser à gauche, ou toucher la poubelle corail, pour écarter un média. Glisser à droite, ou toucher la flèche verte, pour le garder.
 - Les trois boutons sont superposés en bas du média : **Supprimer** en corail, **Annuler** sur fond jaune et **Garder** en vert. Annuler ramène le dernier choix. Plusieurs annulations successives sont possibles.
-- Le bandeau conserve uniquement le logo, le nom **PhotoMatcher** et le menu **⋮**. En dessous, les filtres **Tout / Photos / Vidéos** affinent la sélection. Le média occupe tout l’espace restant, sans slogan ni métadonnées.
+- Le bandeau affiche le logo, le nom **PhotoMatcher**, le badge Android décrit ci-dessous lorsqu’il est applicable, et le menu **⋮**. En dessous, les filtres **Tout / Photos / Vidéos** affinent la sélection. Le média occupe tout l’espace restant, sans slogan ni métadonnées.
 - Les compteurs **Gardés / À supprimer / Restants** restent discrets en haut du média. « À supprimer » compte les médias marqués, encore présents sur le téléphone pendant le tri.
 - Les vidéos se lisent automatiquement dans l’écran de tri, en boucle jusqu’au choix. Toucher la vidéo pour la mettre en pause ou la reprendre. La lecture s’arrête en changeant de média et se met en pause en ouvrant un menu ou en passant l’application en arrière-plan.
 - Le menu **⋮ → Choisir un dossier** permet de limiter le tri à un album. Par défaut, toute la galerie est sélectionnée.
@@ -26,7 +26,7 @@ Les photos principales sont décodées depuis le **fichier original** avec `Imag
 
 Sur Android 10 à 12, l’application demande `READ_EXTERNAL_STORAGE`. Sur Android 10 uniquement, elle demande aussi `WRITE_EXTERNAL_STORAGE` pour la suppression. À partir d’Android 13, elle demande `READ_MEDIA_IMAGES` et `READ_MEDIA_VIDEO`. L’accès à une sélection limitée de médias est pris en charge à partir d’Android 14.
 
-À partir d’Android 11, le stockage cloisonné est utilisé. Sur Android 10, le mode de stockage historique est activé, comme le recommande la documentation Android pour modifier ou supprimer les médias sur cette version. Aucune permission `MANAGE_EXTERNAL_STORAGE` et aucun accès réseau. Les dossiers sont les albums locaux indexés par `MediaStore`, y compris les volumes externes accessibles ; les contenus uniquement présents dans le cloud ne sont pas listés.
+À partir d’Android 11, le stockage cloisonné est utilisé. Sur Android 10, le mode de stockage historique est activé, comme le recommande la documentation Android pour modifier ou supprimer les médias sur cette version. Aucune permission `MANAGE_EXTERNAL_STORAGE` et aucun accès réseau. Les médias, les choix de tri et la détection du badge restent locaux. Les dossiers sont les albums locaux indexés par `MediaStore`, y compris les volumes externes accessibles ; les contenus uniquement présents dans le cloud ne sont pas listés.
 
 Sur **Android 10**, la liste marquée est enregistrée atomiquement avant la fermeture puis traitée par `WorkManager`, indépendamment de l’activité. Le mode historique évite un défaut de certaines versions Android 10 qui retirent l’entrée de galerie sans effacer le fichier. L’historique n’est mis à jour qu’après suppression ; un échec conserve le média dans la liste à supprimer. Les sauvegardes retardées sont versionnées afin qu’elles ne puissent pas réintroduire un média déjà effacé.
 
@@ -35,6 +35,22 @@ Sur **Android 10**, la liste marquée est enregistrée atomiquement avant la fer
 Un arrêt forcé par les paramètres Android peut suspendre les travaux jusqu’au prochain lancement. Un crash ou un arrêt brutal avant la mise en file conserve les choix enregistrés, qui seront appliqués à une prochaine sortie normale ; aucune opération fiable ne peut reposer uniquement sur `onDestroy`.
 
 Références : [décodage des images originales](https://developer.android.com/reference/android/graphics/ImageDecoder), [accès et suppression des médias](https://developer.android.com/training/data-storage/shared/media), [cycle de vie des activités](https://developer.android.com/guide/components/activities/activity-lifecycle), [accès limité aux photos et vidéos](https://developer.android.com/about/versions/14/changes/partial-photo-video-access).
+
+## Badge Keep Android Open
+
+Un robot Android vert, de la couleur de l’application, apparaît à gauche du menu **⋮** lorsque la détection locale trouve microG, des services Google absents/désactivés ou un remplacement signé par un autre éditeur. Le badge ouvre une fenêtre de remerciement en français ou en anglais et met la lecture vidéo en pause pendant son affichage.
+
+La détection inspecte uniquement le paquet `com.google.android.gms`. Les composants `org.microg.*` identifient microG, y compris lorsque celui-ci présente un certificat Google par usurpation de signature. Sinon, les empreintes des certificats actuels et historiques permettent de reconnaître les signataires Google connus. Un téléphone avec les services Google officiels et actifs garde le badge masqué, sans avoir besoin d’un projet Cloud, du Play Store, d’un compte Google ou d’une connexion Internet. La seule présence d’une application compagnon microG ailleurs sur le téléphone n’active pas le badge.
+
+La lecture s’effectue en arrière-plan une fois à la création du ViewModel. Une erreur d’inspection ou des certificats illisibles donnent un résultat **inconnu**, avec le badge masqué, pour éviter de transformer un problème technique en faux positif. La visibilité du paquet est déclarée dans le manifeste ; aucun accès global à la liste des applications n’est demandé. Le résultat est identifiable dans Logcat avec le filtre `OpenAndroidBadge`.
+
+**Limites** : c’est une détection indicative d’un environnement sans services Google officiels actifs, pas une preuve de certification ou d’ouverture du système. Elle ne mesure plus Basic, Device ou Strong Integrity. Une ROM personnalisée avec les services Google officiels peut masquer le badge ; un téléphone certifié dont les services Google sont désactivés peut l’afficher. Des composants masqués ou de nouvelles clés Google inconnues peuvent aussi fausser la détection.
+
+L’intégration Play Integrity précédente a été retirée, avec ses dépendances, ses clés, son nonce et la permission réseau. Elle affichait le badge sur tous les téléphones faute de configuration Google. Cette variante locale est le choix retenu pour fonctionner sans projet Google.
+
+Validation du correctif : 20 tests unitaires, dont les cas services Google officiels, microG avec signature propre ou Google simulée, services absents/désactivés et inspection impossible. Sur un émulateur Google Play Android 15 isolé, le vrai paquet Google masque le badge ; sa désactivation temporaire l’active. Les quatre tests d’interface passent et l’APK ne demande pas la permission réseau. Compilations debug/release et Android Lint réussis. Les téléphones Murena et Redmi de l’utilisateur restent à retester avec cet APK.
+
+Références : [inspection des paquets et certificats Android](https://developer.android.com/reference/android/content/pm/PackageManager), [historique des signataires](https://developer.android.com/reference/android/content/pm/SigningInfo), [composants microG](https://github.com/microg/GmsCore/blob/master/play-services-core/src/main/AndroidManifest.xml), [identifiants des signataires connus](https://github.com/microg/GmsCore/blob/master/play-services-basement/src/main/java/org/microg/gms/common/Constants.java).
 
 ## Ouvrir et compiler
 

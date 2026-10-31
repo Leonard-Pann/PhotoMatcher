@@ -45,3 +45,13 @@ fun DonationDialog(onDonate: () -> Unit, onClose: () -> Unit) {
             }
         }, dismissButton = { TextButton(onClick = onClose) { Text(text(R.string.close)) } })
 }
+
+@Composable
+internal fun OpenAndroidDialog(onClose: () -> Unit) {
+    val text = LocalText.current
+    AlertDialog(onDismissRequest = onClose,
+        icon = { AndroidRobotMark(Mint, Modifier.size(40.dp)) },
+        title = { Text(text(R.string.keep_android_open)) },
+        text = { Text(text(R.string.keep_android_open_body), Modifier.verticalScroll(rememberScrollState())) },
+        confirmButton = { TextButton(onClick = onClose) { Text(text(R.string.close)) } })
+}

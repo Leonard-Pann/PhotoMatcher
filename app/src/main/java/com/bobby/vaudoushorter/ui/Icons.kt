@@ -6,6 +6,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
@@ -19,6 +21,25 @@ import androidx.compose.ui.unit.dp
 import com.bobby.vaudoushorter.R
 
 enum class Glyph { HEART, SPARK, UNDO, MORE, TRASH, ARROW, FOLDER, PHOTO, PLAY, CLOSE, CHECK, REFRESH, SHIELD, CHEVRON }
+
+/** Android robot, redrawn in the app's palette. */
+@Composable
+internal fun AndroidRobotMark(tint: Color, modifier: Modifier = Modifier) {
+    Canvas(modifier.size(24.dp)) {
+        withTransform({ scale(size.width / 24f, size.height / 24f, Offset.Zero) }) {
+            drawArc(tint, 180f, 180f, true, Offset(5f, 4f), Size(14f, 10f))
+            drawLine(tint, Offset(8f, 5f), Offset(6.5f, 2.5f), 1.3f, StrokeCap.Round)
+            drawLine(tint, Offset(16f, 5f), Offset(17.5f, 2.5f), 1.3f, StrokeCap.Round)
+            drawRoundRect(tint, Offset(5f, 10f), Size(14f, 9f), CornerRadius(1.5f))
+            drawLine(tint, Offset(2.5f, 11f), Offset(2.5f, 17f), 2.5f, StrokeCap.Round)
+            drawLine(tint, Offset(21.5f, 11f), Offset(21.5f, 17f), 2.5f, StrokeCap.Round)
+            drawLine(tint, Offset(8.5f, 18f), Offset(8.5f, 21.5f), 3f, StrokeCap.Round)
+            drawLine(tint, Offset(15.5f, 18f), Offset(15.5f, 21.5f), 3f, StrokeCap.Round)
+            drawCircle(Color.Black, .8f, Offset(8.5f, 7f))
+            drawCircle(Color.Black, .8f, Offset(15.5f, 7f))
+        }
+    }
+}
 
 /** PhotoMatcher's brand mark, shared with the Android launcher icon. */
 @Composable

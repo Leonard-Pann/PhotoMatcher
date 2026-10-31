@@ -91,4 +91,6 @@
     <string name="video_description">Video: %1$s</string>
     <string name="stamp_keep">KEEP</string>
     <string name="stamp_delete">DELETE</string>
+    <string name="keep_android_open" translatable="false">Keep Android Open</string>
+    <string name="keep_android_open_body">Thank you for keeping Android open! If you use an open-source or de-Googled Android, your choice helps preserve the freedom to install your apps and choose your system.\n\nLet’s defend an Android ecosystem where everyone stays in control of their device. KEEP ANDROID OPEN!\n\nThis badge uses local hints, such as microG or the absence of official Google services. It does not check Google certification or Play Integrity.</string>
 </resources>

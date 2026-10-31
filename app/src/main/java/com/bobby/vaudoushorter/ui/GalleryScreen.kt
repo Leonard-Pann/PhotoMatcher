@@ -37,6 +37,7 @@ fun GalleryScreen(state: GalleryUiState, model: GalleryViewModel, requestAccess:
     onExit: () -> Unit, onLanguageChanged: (String) -> Unit = {}, onDonate: () -> Unit = {}) {
     var languageOpen by rememberSaveable { mutableStateOf(false) }
     var donationOpen by rememberSaveable { mutableStateOf(false) }
+    var openAndroidOpen by rememberSaveable { mutableStateOf(false) }
     var foldersOpen by rememberSaveable { mutableStateOf(false) }
     var trashOpen by rememberSaveable { mutableStateOf(false) }
     var optionsOpen by remember { mutableStateOf(false) }
@@ -68,9 +69,10 @@ fun GalleryScreen(state: GalleryUiState, model: GalleryViewModel, requestAccess:
         onUndo = { command = null; model.undo() },
         onDecision = { decision ->
             state.review.current?.let { command = SwipeCommand(++commandId, it.uri, decision) }
-        }, onExit = onExit, onLanguage = { languageOpen = true }, onDonate = { donationOpen = true }, snackbar = snackbar
+        }, onExit = onExit, onLanguage = { languageOpen = true }, onDonate = { donationOpen = true },
+        onOpenAndroid = { openAndroidOpen = true }, snackbar = snackbar
     ) {
-        Stage(state, command, playbackActive = ready && !optionsOpen && !foldersOpen && !trashOpen && !languageOpen && !donationOpen,
+        Stage(state, command, playbackActive = ready && !optionsOpen && !foldersOpen && !trashOpen && !languageOpen && !donationOpen && !openAndroidOpen,
             onDecision = { uri, decision -> command = null; model.choose(uri, decision) },
             onDecisionStarted = model::stageChoice,
             onBusy = { busy = it }, requestAccess = requestAccess, openSettings = openSettings,
@@ -78,6 +80,7 @@ fun GalleryScreen(state: GalleryUiState, model: GalleryViewModel, requestAccess:
     }
     if (languageOpen) LanguageDialog(onLanguageChanged) { languageOpen = false }
     if (donationOpen) DonationDialog(onDonate) { donationOpen = false }
+    if (openAndroidOpen) OpenAndroidDialog { openAndroidOpen = false }
     if (foldersOpen) FolderSheet(state, model::selectFolder, manageAccess, model::refresh) { foldersOpen = false }
     if (trashOpen) TrashSheet(state, model::restore, model::restoreAll, onExit, requestAccess) { trashOpen = false }
 }
@@ -101,6 +104,7 @@ internal fun GalleryLayout(
     onExit: () -> Unit = {},
     onLanguage: () -> Unit = {},
     onDonate: () -> Unit = {},
+    onOpenAndroid: () -> Unit = {},
     snackbar: SnackbarHostState = remember { SnackbarHostState() },
     mediaContent: @Composable () -> Unit
 ) {
@@ -108,7 +112,8 @@ internal fun GalleryLayout(
     Scaffold(containerColor = Ink, snackbarHost = { SnackbarHost(snackbar) },
         contentWindowInsets = WindowInsets.safeDrawing) { insets ->
         Column(Modifier.fillMaxSize().padding(insets)) {
-            Header(optionsEnabled, optionsOpen, onOptions, onFolders, onPermissions, onLanguage, onDonate)
+            Header(optionsEnabled, optionsOpen, onOptions, onFolders, onPermissions, onLanguage, onDonate,
+                state.showOpenAndroidBadge, onOpenAndroid)
             Row(Modifier.fillMaxWidth().padding(horizontal = 8.dp).height(48.dp),
                 horizontalArrangement = Arrangement.spacedBy(8.dp), verticalAlignment = Alignment.CenterVertically) {
                 Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(4.dp)) {
@@ -146,14 +151,21 @@ internal fun GalleryLayout(
 
 @Composable
 private fun Header(enabled: Boolean, menuOpen: Boolean, onMenu: (Boolean) -> Unit,
-    onFolders: () -> Unit, onPermissions: () -> Unit, onLanguage: () -> Unit, onDonate: () -> Unit) {
+    onFolders: () -> Unit, onPermissions: () -> Unit, onLanguage: () -> Unit, onDonate: () -> Unit,
+    showOpenAndroidBadge: Boolean, onOpenAndroid: () -> Unit) {
     val text = LocalText.current
     Row(Modifier.fillMaxWidth().height(56.dp).padding(start = 16.dp, end = 8.dp), verticalAlignment = Alignment.CenterVertically) {
         Box(Modifier.size(32.dp).clip(RoundedCornerShape(11.dp)).background(Panel), contentAlignment = Alignment.Center) {
             PhotoMatcherMark(Modifier.size(25.dp))
         }
-        Text(stringResource(R.string.app_name), fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = (-.7).sp,
+        Text(stringResource(R.string.app_name), fontSize = 22.sp, fontWeight = FontWeight.ExtraBold, letterSpacing = (-.7).sp, maxLines = 1,
             modifier = Modifier.weight(1f).padding(start = 10.dp))
+        if (showOpenAndroidBadge) {
+            IconButton(onClick = onOpenAndroid, enabled = enabled,
+                modifier = Modifier.testTag("open-android-badge").semantics {
+                    contentDescription = text(R.string.keep_android_open)
+                }) { AndroidRobotMark(Mint, Modifier.size(26.dp)) }
+        }
         Box {
             IconButton(onClick = { onMenu(true) }, enabled = enabled,
                 modifier = Modifier.semantics { contentDescription = text(R.string.options) }) { Mark(Glyph.MORE, Muted) }
